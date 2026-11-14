@@ -20,14 +20,12 @@ object NotificationHelper {
     const val CHANNEL_ID = "lost_items"
 
     fun createChannel(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID, "Lost item alerts", NotificationManager.IMPORTANCE_HIGH
-            )
-            channel.description = "Alerts when someone reports a missing item"
-            context.getSystemService(NotificationManager::class.java)
-                .createNotificationChannel(channel)
-        }
+        val channel = NotificationChannel(
+            CHANNEL_ID, "Lost item alerts", NotificationManager.IMPORTANCE_HIGH
+        )
+        channel.description = "Alerts when someone reports a missing item"
+        context.getSystemService(NotificationManager::class.java)
+            .createNotificationChannel(channel)
     }
 
     fun showLostItem(context: Context, item: Item) {
