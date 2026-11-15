@@ -14,6 +14,13 @@ val localProps = Properties().apply {
 fun localProp(name: String): String = localProps.getProperty(name)
     ?: error("Missing $name in local.properties. See the setup guide.")
 
+// Release signing info is read from keystore.properties (git-ignored, never committed).
+// See docs/BUILD_APK.md for how to create the keystore and this file.
+val keystoreProps = Properties().apply {
+    val f = rootProject.file("keystore.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+
 android {
     namespace = "com.example.foundit"
     compileSdk {
@@ -33,8 +40,21 @@ android {
         buildConfigField("String", "SUPABASE_KEY", "\"${localProp("SUPABASE_KEY")}\"")
     }
 
+    signingConfigs {
+        if (keystoreProps.containsKey("storeFile")) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            // Signed when keystore.properties exists; otherwise an unsigned APK is produced.
+            signingConfigs.findByName("release")?.let { signingConfig = it }
             optimization {
                 enable = false
             }
