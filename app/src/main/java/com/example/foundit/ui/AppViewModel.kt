@@ -284,9 +284,14 @@ class AppViewModel : ViewModel() {
         listenJob = viewModelScope.launch {
             runCatching {
                 Repository.listenForNewItems { item ->
-                    if (item.type == ItemType.LOST && item.userId != Repository.currentUserIdOrNull()) {
+                    // Alert for every post made by someone else (both LOST and FOUND).
+                    if (item.userId != Repository.currentUserIdOrNull()) {
                         unread++
-                        NotificationHelper.showLostItem(appContext, item)
+                        val kind = if (item.type == ItemType.LOST) "Lost" else "Found"
+                        // In-app popup (always visible while the app is open)…
+                        snackbar = "New $kind item: ${item.name}"
+                        // …plus a system notification (heads-up banner / notification shade).
+                        NotificationHelper.showNewItem(appContext, item)
                     }
                     viewModelScope.launch { runCatching { refreshLists() } }
                 }

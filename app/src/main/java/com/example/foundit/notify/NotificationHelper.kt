@@ -21,20 +21,16 @@ object NotificationHelper {
 
     fun createChannel(context: Context) {
         val channel = NotificationChannel(
-            CHANNEL_ID, "Lost item alerts", NotificationManager.IMPORTANCE_HIGH
+            CHANNEL_ID, "New item alerts", NotificationManager.IMPORTANCE_HIGH
         )
-        channel.description = "Alerts when someone reports a missing item"
+        channel.description = "Alerts when someone reports a lost or found item"
         context.getSystemService(NotificationManager::class.java)
             .createNotificationChannel(channel)
     }
 
-    fun showLostItem(context: Context, item: Item) {
-        showText(
-            context,
-            "Missing item reported",
-            "${item.name} - ${item.location ?: "on campus"}",
-            item.id.hashCode()
-        )
+    fun showNewItem(context: Context, item: Item) {
+        val title = if (item.type == "LOST") "Lost item reported" else "Found item reported"
+        showText(context, title, "${item.name} - ${item.location ?: "on campus"}", item.id.hashCode())
     }
 
     @SuppressLint("MissingPermission")

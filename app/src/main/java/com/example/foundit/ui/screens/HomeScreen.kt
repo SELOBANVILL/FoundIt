@@ -37,9 +37,14 @@ fun HomeScreen(vm: AppViewModel, onOpen: (String) -> Unit) {
             TopAppBar(
                 title = { Text("FoundIt") },
                 actions = {
-                    IconButton(onClick = { vm.unread = 0; vm.typeFilter = ItemType.LOST }) {
+                    // Bell: clear the badge and show the newest posts (filters reset).
+                    IconButton(onClick = {
+                        vm.unread = 0
+                        vm.query = ""; vm.typeFilter = null; vm.categoryFilter = null
+                        vm.loadItems()
+                    }) {
                         BadgedBox(badge = { if (vm.unread > 0) Badge { Text("${vm.unread}") } }) {
-                            Icon(Icons.Filled.Notifications, contentDescription = "New lost items")
+                            Icon(Icons.Filled.Notifications, contentDescription = "New items")
                         }
                     }
                 }
