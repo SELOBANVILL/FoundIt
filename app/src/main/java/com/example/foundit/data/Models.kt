@@ -30,7 +30,7 @@ data class NewItem(
     val location: String,
     val type: String,
     @SerialName("image_url") val imageUrl: String? = null,
-    // Only filled in for FOUND posts; shown publicly so the owner can reach the finder.
+    // Shown publicly so the finder / owner can reach whoever posted.
     @SerialName("contact_email") val contactEmail: String? = null,
     @SerialName("contact_info") val contactInfo: String? = null
 )

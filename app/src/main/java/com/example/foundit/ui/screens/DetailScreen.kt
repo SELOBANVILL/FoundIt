@@ -83,8 +83,8 @@ private fun DetailContent(vm: AppViewModel, item: Item, onBack: () -> Unit, onEd
                 InfoRow(Icons.Filled.DateRange, item.createdAt?.toDateLabel() ?: "-")
             }
         }
-        if (item.type == ItemType.FOUND && !item.contactEmail.isNullOrBlank()) item {
-            FinderContactCard(item.name, item.contactEmail, item.contactInfo)
+        if (!item.contactEmail.isNullOrBlank()) item {
+            PosterContactCard(item.name, item.type, item.contactEmail, item.contactInfo)
         }
         item {
             when {
@@ -174,11 +174,12 @@ private fun DetailContent(vm: AppViewModel, item: Item, onBack: () -> Unit, onEd
 }
 
 @Composable
-private fun FinderContactCard(itemName: String, email: String, otherInfo: String?) {
+private fun PosterContactCard(itemName: String, type: String, email: String, otherInfo: String?) {
     val uriHandler = LocalUriHandler.current
+    val who = if (type == ItemType.LOST) "owner" else "finder"
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
         Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Contact the finder", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text("Contact the $who", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             InfoRow(Icons.Filled.Email, email)
             if (!otherInfo.isNullOrBlank()) InfoRow(Icons.Filled.Info, otherInfo)
             OutlinedButton(
@@ -187,7 +188,7 @@ private fun FinderContactCard(itemName: String, email: String, otherInfo: String
                     runCatching { uriHandler.openUri("mailto:$email?subject=$subject") }
                 },
                 modifier = Modifier.fillMaxWidth()
-            ) { Text("Email the finder") }
+            ) { Text("Email the $who") }
         }
     }
 }

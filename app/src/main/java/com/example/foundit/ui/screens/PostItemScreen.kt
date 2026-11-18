@@ -62,7 +62,6 @@ fun PostItemScreen(vm: AppViewModel, editing: Item?, onDone: () -> Unit, onBack:
     var contactInfoError by remember { mutableStateOf<String?>(null) }
     var confirmPublicContact by remember { mutableStateOf(false) }
     var confirmDiscard by remember { mutableStateOf(false) }
-    var confirmSave by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { vm.clearError() }
 
@@ -83,18 +82,16 @@ fun PostItemScreen(vm: AppViewModel, editing: Item?, onDone: () -> Unit, onBack:
         locationError = Validators.location(location)
         descriptionError = Validators.description(description)
         categoryError = Validators.category(category)
-        val isFound = type == ItemType.FOUND
-        contactEmailError = if (isFound) Validators.ciitEmail(contactEmail) else null
-        contactInfoError = if (isFound) Validators.contactInfo(contactInfo) else null
+        contactEmailError = Validators.ciitEmail(contactEmail)
+        contactInfoError = Validators.contactInfo(contactInfo)
         return listOf(nameError, locationError, descriptionError, categoryError, contactEmailError, contactInfoError)
             .all { it == null }
     }
 
     fun save() = vm.saveItem(
         context, editing, name.trim(), description.trim(), category, location.trim(), type, imageUri,
-        // Lost posts never carry the finder contact fields.
-        contactEmail = if (type == ItemType.FOUND) contactEmail.trim() else null,
-        contactInfo = if (type == ItemType.FOUND) contactInfo.trim().ifEmpty { null } else null
+        contactEmail = contactEmail.trim(),
+        contactInfo = contactInfo.trim().ifEmpty { null }
     ) {
         if (editing == null) {
             type = ItemType.LOST; name = ""; description = ""; category = ""; location = ""; imageUri = null
@@ -165,32 +162,24 @@ fun PostItemScreen(vm: AppViewModel, editing: Item?, onDone: () -> Unit, onBack:
             }
             categoryError?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
 
-            if (type == ItemType.FOUND) {
-                Spacer(Modifier.height(4.dp))
-                Text("Your contact details", style = MaterialTheme.typography.labelLarge)
-                PublicContactWarning()
-                FormField(
-                    contactEmail, { contactEmail = it; contactEmailError = null }, "CIIT email *", contactEmailError,
-                    keyboardType = KeyboardType.Email, supporting = "Must end in @$CIIT_EMAIL_DOMAIN"
-                )
-                FormField(
-                    contactInfo, { contactInfo = it; contactInfoError = null },
-                    "Other contact info (optional)", contactInfoError,
-                    singleLine = false, minLines = 2, maxLength = Validators.CONTACT_INFO_MAX,
-                    imeAction = ImeAction.Default
-                )
-            }
+            Spacer(Modifier.height(4.dp))
+            Text("Your contact details", style = MaterialTheme.typography.labelLarge)
+            PublicContactWarning()
+            FormField(
+                contactEmail, { contactEmail = it; contactEmailError = null }, "CIIT email *", contactEmailError,
+                keyboardType = KeyboardType.Email, supporting = "Must end in @$CIIT_EMAIL_DOMAIN"
+            )
+            FormField(
+                contactInfo, { contactInfo = it; contactInfoError = null },
+                "Other contact info (optional)", contactInfoError,
+                singleLine = false, minLines = 2, maxLength = Validators.CONTACT_INFO_MAX,
+                imeAction = ImeAction.Default
+            )
 
             ErrorText(vm.error)
             Spacer(Modifier.height(4.dp))
             Button(
-                onClick = {
-                    if (validate()) when {
-                        type == ItemType.FOUND -> confirmPublicContact = true
-                        editing == null -> save()
-                        else -> confirmSave = true
-                    }
-                },
+                onClick = { if (validate()) confirmPublicContact = true },
                 enabled = !vm.busy,
                 modifier = Modifier.fillMaxWidth().height(52.dp)
             ) {
@@ -204,14 +193,11 @@ fun PostItemScreen(vm: AppViewModel, editing: Item?, onDone: () -> Unit, onBack:
         "Discard changes?", "What you typed will be lost.", "Discard", destructive = true,
         onConfirm = { onBack?.invoke() }, onDismiss = { confirmDiscard = false }
     )
-    if (confirmSave) ConfirmDialog(
-        "Save changes?", "Update this post with the new details?", "Save",
-        onConfirm = ::save, onDismiss = { confirmSave = false }
-    )
     if (confirmPublicContact) ConfirmDialog(
         "Share your contact info?",
         "Your CIIT email${if (contactInfo.isNotBlank()) " and other contact info" else ""} will be visible to " +
-            "everyone using FoundIt so the owner can reach you.",
+            "everyone using FoundIt so " +
+            (if (type == ItemType.LOST) "whoever finds your item" else "the owner") + " can reach you.",
         if (editing == null) "Post item" else "Save changes",
         onConfirm = ::save, onDismiss = { confirmPublicContact = false }
     )

@@ -84,17 +84,16 @@ begin
             check (category is null or category in
                 ('Bags', 'IDs & Cards', 'Electronics', 'Clothing', 'Books', 'Keys', 'Others')) not valid;
     end if;
-    -- Contact email must be a CIIT address, and only FOUND posts may have one.
-    -- ("Required on new FOUND posts" is enforced by the items_set_owner trigger,
-    -- so older FOUND posts without an email can still be edited / marked claimed.)
-    if not exists (select 1 from pg_constraint where conname = 'items_contact_email_check') then
-        alter table public.items add constraint items_contact_email_check
-            check (
-                contact_email is null
-                or (type = 'FOUND' and contact_email ~* '^[A-Za-z0-9._%+-]+@ciit\.edu\.ph$'
-                    and char_length(contact_email) <= 254)
-            ) not valid;
-    end if;
+    -- Contact email must be a CIIT address. ("Required on new posts" is enforced
+    -- by the items_set_owner trigger, so older posts without an email can still
+    -- be edited / marked claimed.) Dropped and re-added so re-running this file
+    -- replaces the earlier FOUND-only version of the rule.
+    alter table public.items drop constraint if exists items_contact_email_check;
+    alter table public.items add constraint items_contact_email_check
+        check (
+            contact_email is null
+            or (contact_email ~* '^[A-Za-z0-9._%+-]+@ciit\.edu\.ph$' and char_length(contact_email) <= 254)
+        ) not valid;
     if not exists (select 1 from pg_constraint where conname = 'items_contact_info_len') then
         alter table public.items add constraint items_contact_info_len
             check (contact_info is null or char_length(contact_info) <= 150) not valid;
@@ -127,8 +126,8 @@ begin
         new.user_id    := auth.uid();
         new.status     := 'OPEN';
         new.created_at := now();
-        if new.type = 'FOUND' and coalesce(btrim(new.contact_email), '') = '' then
-            raise exception 'A CIIT contact email is required when posting a found item'
+        if coalesce(btrim(new.contact_email), '') = '' then
+            raise exception 'A CIIT contact email is required when posting an item'
                 using errcode = 'check_violation';
         end if;
     else
