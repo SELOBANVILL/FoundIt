@@ -228,7 +228,8 @@ class AppViewModel : ViewModel() {
 
     fun saveItem(
         context: Context, editing: Item?, name: String, description: String,
-        category: String, location: String, type: String, imageUri: Uri?, onDone: () -> Unit
+        category: String, location: String, type: String, imageUri: Uri?,
+        contactEmail: String?, contactInfo: String?, onDone: () -> Unit
     ) = launchSafe {
         if (Repository.hasOpenDuplicate(name, location, type, editing?.id)) {
             error = "You already have an open post for \"$name\" at $location."
@@ -236,10 +237,12 @@ class AppViewModel : ViewModel() {
         }
         val bytes = imageUri?.let { withContext(Dispatchers.IO) { context.uriToJpegBytes(it) } }
         if (editing == null) {
-            Repository.createItem(name, description, category, location, type, bytes)
+            Repository.createItem(name, description, category, location, type, bytes, contactEmail, contactInfo)
             snackbar = "Item posted."
         } else {
-            Repository.updateItem(editing.id, name, description, category, location, type, bytes, editing.imageUrl)
+            Repository.updateItem(
+                editing.id, name, description, category, location, type, bytes, editing.imageUrl, contactEmail, contactInfo
+            )
             snackbar = "Changes saved."
         }
         refreshLists()

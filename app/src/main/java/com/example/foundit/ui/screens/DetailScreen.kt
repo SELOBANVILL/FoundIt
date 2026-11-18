@@ -8,6 +8,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.outlined.SearchOff
@@ -16,11 +18,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.foundit.data.Comment
 import com.example.foundit.data.Item
 import com.example.foundit.data.ItemStatus
+import com.example.foundit.data.ItemType
 import com.example.foundit.security.Validators
 import com.example.foundit.ui.AppViewModel
 import com.example.foundit.ui.components.*
@@ -78,6 +82,9 @@ private fun DetailContent(vm: AppViewModel, item: Item, onBack: () -> Unit, onEd
                 InfoRow(Icons.Filled.Category, item.category ?: "-")
                 InfoRow(Icons.Filled.DateRange, item.createdAt?.toDateLabel() ?: "-")
             }
+        }
+        if (item.type == ItemType.FOUND && !item.contactEmail.isNullOrBlank()) item {
+            FinderContactCard(item.name, item.contactEmail, item.contactInfo)
         }
         item {
             when {
@@ -164,6 +171,25 @@ private fun DetailContent(vm: AppViewModel, item: Item, onBack: () -> Unit, onEd
         },
         dismissButton = { TextButton(onClick = { showClaim = false }) { Text("Cancel") } }
     )
+}
+
+@Composable
+private fun FinderContactCard(itemName: String, email: String, otherInfo: String?) {
+    val uriHandler = LocalUriHandler.current
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+        Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Contact the finder", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            InfoRow(Icons.Filled.Email, email)
+            if (!otherInfo.isNullOrBlank()) InfoRow(Icons.Filled.Info, otherInfo)
+            OutlinedButton(
+                onClick = {
+                    val subject = android.net.Uri.encode("FoundIt: $itemName")
+                    runCatching { uriHandler.openUri("mailto:$email?subject=$subject") }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("Email the finder") }
+        }
+    }
 }
 
 @Composable

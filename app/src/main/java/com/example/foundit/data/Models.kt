@@ -14,6 +14,8 @@ data class Item(
     val type: String,
     val status: String = "OPEN",
     @SerialName("image_url") val imageUrl: String? = null,
+    @SerialName("contact_email") val contactEmail: String? = null,
+    @SerialName("contact_info") val contactInfo: String? = null,
     @SerialName("created_at") val createdAt: String? = null
 )
 
@@ -27,7 +29,10 @@ data class NewItem(
     val category: String,
     val location: String,
     val type: String,
-    @SerialName("image_url") val imageUrl: String? = null
+    @SerialName("image_url") val imageUrl: String? = null,
+    // Only filled in for FOUND posts; shown publicly so the owner can reach the finder.
+    @SerialName("contact_email") val contactEmail: String? = null,
+    @SerialName("contact_info") val contactInfo: String? = null
 )
 
 @Serializable

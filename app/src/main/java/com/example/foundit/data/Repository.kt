@@ -121,12 +121,13 @@ object Repository {
     // ---------- ITEMS: CREATE ----------
     suspend fun createItem(
         name: String, description: String, category: String,
-        location: String, type: String, imageBytes: ByteArray?
+        location: String, type: String, imageBytes: ByteArray?,
+        contactEmail: String?, contactInfo: String?
     ) {
         val url = imageBytes?.let { uploadImage(it) }
         try {
             supabase.from("items").insert(
-                NewItem(userId(), name, description, category, location, type, url)
+                NewItem(userId(), name, description, category, location, type, url, contactEmail, contactInfo)
             )
         } catch (e: Exception) {
             deleteImage(url) // don't leave an orphaned photo behind
@@ -179,7 +180,8 @@ object Repository {
     // ---------- ITEMS: UPDATE ----------
     suspend fun updateItem(
         id: String, name: String, description: String, category: String,
-        location: String, type: String, newImageBytes: ByteArray?, oldImageUrl: String?
+        location: String, type: String, newImageBytes: ByteArray?, oldImageUrl: String?,
+        contactEmail: String?, contactInfo: String?
     ) {
         val url = newImageBytes?.let { uploadImage(it) }
         supabase.from("items").update({
@@ -188,6 +190,8 @@ object Repository {
             set("category", category)
             set("location", location)
             set("type", type)
+            set("contact_email", contactEmail)
+            set("contact_info", contactInfo)
             if (url != null) set("image_url", url)
         }) {
             filter { eq("id", id) }

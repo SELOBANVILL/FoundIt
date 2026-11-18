@@ -75,4 +75,20 @@ class ValidatorsTest {
         assertNotNull(Validators.category(""))
         assertNull(Validators.category("Keys"))
     }
+
+    @Test
+    fun ciitEmail_requiresSchoolDomain() {
+        assertNull(Validators.ciitEmail("juan.delacruz@ciit.edu.ph"))
+        assertNull(Validators.ciitEmail("  Juan@CIIT.edu.ph "))
+        assertNotNull(Validators.ciitEmail(""))
+        assertNotNull(Validators.ciitEmail("juan@gmail.com"))
+        assertNotNull(Validators.ciitEmail("juan@ciit.edu.ph.evil.com"))
+    }
+
+    @Test
+    fun contactInfo_isOptionalButLimited() {
+        assertNull(Validators.contactInfo(""))
+        assertNull(Validators.contactInfo("FB: Juan Dela Cruz"))
+        assertNotNull(Validators.contactInfo("x".repeat(Validators.CONTACT_INFO_MAX + 1)))
+    }
 }

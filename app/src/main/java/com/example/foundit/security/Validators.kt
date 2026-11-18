@@ -1,6 +1,7 @@
 package com.example.foundit.security
 
 import com.example.foundit.data.CATEGORIES
+import com.example.foundit.data.CIIT_EMAIL_DOMAIN
 import com.example.foundit.data.ItemType
 
 /**
@@ -19,6 +20,7 @@ object Validators {
     const val COMMENT_MAX = 300
     const val PASSWORD_MIN = 8
     const val EMAIL_MAX = 254
+    const val CONTACT_INFO_MAX = 150
 
     private val EMAIL_REGEX = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*\\.[A-Za-z]{2,}$")
     private val OTP_REGEX = Regex("^\\d{6}$")
@@ -74,6 +76,16 @@ object Validators {
             else -> null
         }
     }
+
+    /** Finder's contact email: required, and must be a CIIT school address. */
+    fun ciitEmail(value: String): String? {
+        val v = value.trim()
+        return email(v) ?: if (v.lowercase().endsWith("@$CIIT_EMAIL_DOMAIN")) null
+        else "Use your CIIT email (@$CIIT_EMAIL_DOMAIN)"
+    }
+
+    fun contactInfo(value: String): String? =
+        if (value.trim().length > CONTACT_INFO_MAX) "Contact info must be at most $CONTACT_INFO_MAX characters" else null
 
     fun description(value: String): String? =
         if (value.trim().length > DESCRIPTION_MAX) "Description must be at most $DESCRIPTION_MAX characters" else null
