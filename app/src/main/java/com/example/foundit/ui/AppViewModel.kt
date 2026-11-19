@@ -124,6 +124,19 @@ class AppViewModel : ViewModel() {
         }
     }
 
+    fun sendResetCode(email: String, onSent: () -> Unit) = launchSafe {
+        Repository.sendPasswordResetCode(email.trim())
+        onSent()
+    }
+
+    fun resetPassword(
+        email: String, emailCode: String, newPassword: String, authCode: String, onDone: () -> Unit
+    ) = launchSafe {
+        Repository.resetPassword(email.trim(), emailCode.trim(), newPassword, authCode)
+        snackbar = "Password changed. Log in with your new password."
+        onDone()
+    }
+
     fun startEnrollment() = launchSafe {
         enrollment = Repository.startTotpEnrollment()
     }

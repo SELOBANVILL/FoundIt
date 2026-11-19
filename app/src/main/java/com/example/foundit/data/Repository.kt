@@ -14,6 +14,7 @@ import io.github.jan.supabase.realtime.postgresChangeFlow
 import io.github.jan.supabase.realtime.realtime
 import io.github.jan.supabase.storage.storage
 import java.util.UUID
+import io.github.jan.supabase.auth.OtpType
 
 /** Where the signed-in user is in the login + 2FA flow. */
 enum class AuthStage { LOGGED_OUT, NEEDS_ENROLL, NEEDS_VERIFY, READY }
@@ -102,6 +103,30 @@ object Repository {
             .firstOrNull { it.factorType == "totp" && it.isVerified }
             ?: error("No authenticator is set up for this account")
         supabase.auth.mfa.createChallengeAndVerify(factor.id, code)
+    }
+
+    // ---------- PASSWORD RESET ----------
+
+    /** Emails a recovery code. Supabase answers the same whether or not the email exists. */
+    suspend fun sendPasswordResetCode(email: String) {
+        supabase.auth.resetPasswordForEmail(email)
+    }
+
+    /**
+     * 1) verify the emailed code  2) verify the authenticator code (if 2FA is on)
+     * 3) set the new password. The temporary session is always signed out afterwards,
+     * so the user must log in again with the new password + a fresh authenticator code.
+     */
+    suspend fun resetPassword(email: String, emailCode: String, newPassword: String, authCode: String) {
+        supabase.auth.verifyEmailOtp(type = OtpType.Email.RECOVERY, email = email, token = emailCode)
+        try {
+            val factor = supabase.auth.mfa.retrieveFactorsForCurrentUser()
+                .firstOrNull { it.factorType == "totp" && it.isVerified }
+            if (factor != null) supabase.auth.mfa.createChallengeAndVerify(factor.id, authCode)
+            supabase.auth.updateUser { password = newPassword }
+        } finally {
+            runCatching { signOut() }
+        }
     }
 
     // ---------- PHOTO ----------

@@ -25,6 +25,8 @@ object Validators {
     private val EMAIL_REGEX = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*\\.[A-Za-z]{2,}$")
     private val OTP_REGEX = Regex("^\\d{6}$")
 
+    private val EMAIL_CODE_REGEX = Regex("^\\d{6,8}$")
+
     fun email(value: String): String? {
         val v = value.trim()
         return when {
@@ -56,6 +58,9 @@ object Validators {
 
     fun otp(value: String): String? =
         if (OTP_REGEX.matches(value)) null else "Enter the 6-digit code from Google Authenticator"
+
+    fun emailCode(value: String): String? =
+        if (EMAIL_CODE_REGEX.matches(value.trim())) null else "Enter the code from the email"
 
     fun itemName(value: String): String? {
         val v = value.trim()

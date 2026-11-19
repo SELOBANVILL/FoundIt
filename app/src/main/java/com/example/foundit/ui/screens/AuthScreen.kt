@@ -31,6 +31,11 @@ fun AuthScreen(vm: AppViewModel) {
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
     var confirmError by remember { mutableStateOf<String?>(null) }
+    var forgot by rememberSaveable { mutableStateOf(false) }
+    if (forgot) {
+        ForgotPasswordScreen(vm, initialEmail = email, onBack = { forgot = false })
+        return
+    }
 
     fun switchMode(toRegister: Boolean) {
         registering = toRegister
@@ -91,6 +96,9 @@ fun AuthScreen(vm: AppViewModel) {
             ) {
                 if (vm.busy) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
                 else Text(if (registering) "Create account" else "Log in")
+            }
+            if (!registering) {
+                TextButton(onClick = { vm.clearError(); forgot = true }) { Text("Forgot password?") }
             }
 
             Spacer(Modifier.height(20.dp))

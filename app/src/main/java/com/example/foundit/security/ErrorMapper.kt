@@ -34,6 +34,8 @@ object ErrorMapper {
             code.contains("weak_password") -> "Password is too weak. Use at least 8 characters with letters and numbers."
             code.contains("mfa") || code.contains("totp") -> INVALID_CODE
             code.contains("over_") || code.contains("rate") -> "Too many attempts. Please wait a minute and try again."
+            code.contains("same_password") -> "Your new password must be different from the old one."
+            code.contains("otp") || code.contains("expired") -> "Invalid or expired code. Request a new one and try again."
             e.statusCode == 429 -> "Too many attempts. Please wait a minute and try again."
             else -> "Authentication failed. Please try again."
         }
